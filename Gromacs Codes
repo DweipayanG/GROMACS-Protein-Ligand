@@ -51,6 +51,26 @@ https://www.ks.uiuc.edu/Development/Download/download.cgi?PackageName=VMD
 3. Open the folder src in terminal and run the command 'sudo make install' 
 4. type 'vmd' in termial and program should run. 
 
+###################MANNUAL-GROMACS-COMPILATION###########################
+#	Download Gromacs from : 					#
+#	https://manual.gromacs.org/current/download.html#		#
+#									#
+###################################CUDA TOOLKIT:######################### 
+#	https://developer.nvidia.com/cuda-downloads			#
+#	#Follow the steps and copy the commands				#
+#									#
+#########################Gromacs Compilation Process#####################
+#	tar xfz gromacs-2020.2.tar.gz					#
+#	cd gromacs-2020.2						#
+#	mkdir build							#
+#	cd build							#
+#	cmake .. -DGMX_GPU=CUDA -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda	#
+#	make								#
+#	make check							#
+#	sudo make install						#
+#	source /usr/local/gromacs/bin/GMXRC				#
+#########################################################################
+
 
 #########STEPS FOR MD AS FOLLOWS######### 
 
@@ -79,6 +99,7 @@ perl sort_mol2_bonds.pl LIG.mol2 LIG.mol2 script
 8. Open the terminal in this working folder and proceed with Gromacs.  
 
 ---------GROMACS UBUNTU TUTORIAL-----------
+source /usr/local/gromacs/bin/GMXRC	(If Gromacs is manually compiled / not for dirty install)  
 
 gmx pdb2gmx -f rec.pdb -ignh
 8 (CHARMM27)
