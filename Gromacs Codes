@@ -239,5 +239,3 @@ gmx energy -f MD.edr -o energy1.xvg
 #Choose the option of your choice
 xmgrace -nxy energy1.xvg
 
-
-jalemkul@vt.edu
