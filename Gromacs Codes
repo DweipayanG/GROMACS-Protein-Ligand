@@ -44,23 +44,30 @@ tar -xzvf autodock_vina_1_1_2_linux_x86.tgz
 -------------------Install-GRACE----------------------
 sudo apt-get install grace  
 
+------------------------VMD---------------------------
+https://www.ks.uiuc.edu/Development/Download/download.cgi?PackageName=VMD
+1. Save the .tar.gz file in working folder
+2. open the extracted folder and run command './configure' by opening the termianl  
+3. Open the folder src in terminal and run the command 'sudo make install' 
+4. type 'vmd' in termial and program should run. 
+
+
+#########STEPS FOR MD AS FOLLOWS######### 
 
 ---PREPARE LIGAND AND RECEPTOR IN CHIMERA----
 1. open the best pose ligand with the receptor Protein.pdb file
 2. Delete the chain of protein, in the residual ligand, add hydrogens and save it as LIG.mol2 as 'LIG.mol2'
 
-
-Open the LIG.mol2 file and in the second line 
-First correction
-	"@<TRIPOS>MOLECULE" make sure this is the first line in file
+#Open the LIG.mol2 file and in the second line 
+#Correction to be made in LIG.mol2 
+#Open LIG.mol2 by using gedit command or simplyopening file in any text editor.
+2.1.	"@<TRIPOS>MOLECULE" make sure this is the first line in file
 	delete the header and empty space if you have to
 	
-Second correction
-"@<TRIPOS>MOLECULE” there will be name after this line maybe xxx.pdb or ****** or anything else
+2.2.      "@<TRIPOS>MOLECULE” there will be name after this line maybe xxx.pdb or ****** or anything else
 	change it to LIG 
 	
-Third correction
-	bond orders "@<TRIPOS>BOND" will be arranged differently in each file 
+2.3.	bond orders "@<TRIPOS>BOND" will be arranged differently in each file 
 arrange them in specific order to avoid errors use 
 perl sort_mol2_bonds.pl LIG.mol2 LIG.mol2 script
 
@@ -84,9 +91,14 @@ gedit conf.gro LIG.gro
 
 -----EDIT THE FOLLOWING in topol.top -----
 gedit topol.top
-(add #include "LIG.itp"
+(add 
+
+; Include ligand topology 
+#include "LIG.itp"
+
 below- Include forcefield parameters
 #include "amberGS.ff/forcefield.itp")
+
 AT THE BOTTOM OF THE SAME FILE PERFORM FOLLOWING CHANGES
 (add LIG 1
 align exactly below-
@@ -118,8 +130,8 @@ gmx grompp -f ions.mdp -c box_sol.gro -maxwarn 2 -p topol.top -o ION.tpr
 gmx genion -s ION.tpr -p topol.top -conc 0.1 -neutral -o box_sol_ion.gro
 15
 
-gmx grompp -f em.mdp -c box_sol_ion.gro -p topol.top -o EM.tpr     (OR)
-gmx grompp -f em.mdp -c box_sol_ion.gro -maxwarn 2 -p topol.top -o EM.tpr
+gmx grompp -f EM.mdp -c box_sol_ion.gro -p topol.top -o EM.tpr     (OR)
+gmx grompp -f EM.mdp -c box_sol_ion.gro -maxwarn 2 -p topol.top -o EM.tpr
 
 gmx mdrun -v -deffnm EM
 
@@ -155,12 +167,13 @@ Now, open topol.top file
 
 Again, Make other Index file for System 
 
-gmx make_ndx -f em.gro -o index.ndx
+gmx make_ndx -f EM.gro -o index.ndx
 	
 	> 1 | 13
 	> q
 	
------[NPT]-----
+-----[NVT]-----
+gedit NVT.mdp (This file is already modified)
 
 gmx grompp -f NVT.mdp -c EM.gro -r EM.gro -p topol.top -n index.ndx -maxwarn 2 -o NVT.tpr
 	
@@ -168,61 +181,63 @@ gmx mdrun -deffnm NVT
 
 
 -----[NPT]-----
-gedit npt.mdp (This file is already modified)
+gedit NPT.mdp (This file is already modified)
 
-gmx grompp -f NVT.mdp -c NVT.gro -r NVT.gro -p topol.top -n index.ndx -maxwarn 2 -o NPT.tpr
+gmx grompp -f NPT.mdp -c NVT.gro -r NVT.gro -p topol.top -n index.ndx -maxwarn 2 -o NPT.tpr
 	
 gmx mdrun -deffnm NPT
 
+-----[FINAL MD RUN/PRODUCTION]-----
+gedit NPT.mdp (Change MD RUN TIME as per your need)
 
------ENERGY Calculations-----
-gmx energy -f NPT.edr -o xxx.xvg
-23 (Volume)
-xmgrace energy.xvg
-gmx energy -f NPT.edr
-50 Coul-SR:Protein-LIG              
-51 LJ-SR:Protein-LIG
-xmgrace -nxy energy.xvg
+gmx grompp -f MD.mdp -c NPT.gro -t NPT.cpt -p topol.top -n index.ndx -maxwarn 2 -o MD.tpr
+
+gmx mdrun -deffnm MD
+
+
+----[Recentering and Rewrapping Coordinates]----
+gmx trjconv -s MD.tpr -f MD.xtc -o MD_center.xtc -center -pbc mol -ur compact
+#Choose "Protein" for centering and "System" for output.
+
+#To extract the first frame (t = 0 ns) of the trajectory, use trjconv -dump with the recentered trajectory:
+gmx trjconv -s MD.tpr -f MD_center.xtc -o start.pdb -dump 0
+
 
 ------RMSD Calculations-----
-gmx rms -s NPT.tpr -f NPT.xtc -o rmsd.xvg
-gmx rms -s NVT.tpr -f NVT.xtc -o RhlR-HHL_rmsd.xvg
-gmx rms -s NVT.tpr -f NVT.xtc -o PhzR-Gingerol_rmsd.xvg
+gmx rms -s MD.tpr -f MD_center.xtc -o rmsd.xvg
+gmx rms -s MD.tpr -f MD_center.xtc -o rmsd.xvg -tu ns
 4
 13
 
-AND
-gmx rms -s NVT.tpr -f NVT.xtc -o rmsd.xvg
 
-(Select appropritate 2 options one by one and then open the output files in Grace) Select Backbone and then LIG
+#(Select appropritate 2 options one by one and then open the output files in Grace) Select Backbone and then LIG
 
-xmgrace output.xvg
+xmgrace rmsd.xvg
 
 ------RMSF Calculations-----
-gmx rmsf -s NPT.tpr -f NPT.xtc -o output.xvg
-gmx rmsf -s NVT.tpr -f NVT.xtc -o RhlR-HHL_rmsf.xvg
-gmx rmsf -s NVT.tpr -f NVT.xtc -o RhlR-Gingerol_rmsf.xvg
-AND
-gmx rmsf -s NVT.tpr -f NVT.xtc -o rmsf.xvg
+gmx rmsf -s MD.tpr -f MD_center.xtc -o rmsf.xvg
 4
 
 (Select appropritate Backbone open the output files in Grace)
 
 xmgrace output.xvg
 
-
-
 -----------h-bonds-------------------
-gmx hbond -s NVT.tpr -f NVT.xtc -num hb.xvg
-gmx hbond -s NVT.tpr -f NVT.xtc -num RhlR-HHL_Hbonds.xvg
-gmx hbond -s NVT.tpr -f NVT.xtc -num RhlR-Gingerol_Hbonds.xvg
+gmx hbond -s MD.tpr -f MD_center.xtc -num hb.xvg
+gmx hbond -s MD.tpr -f MD_center.xtc -num hb.xvg -tu ns
 1
 13
-16
 xmgrace hb.xvg
 
---------------------------------
-gmx gyrate -s NPT.tpr -f NPT.xtc -o gyrate1.xvg
-Group     3 (        C-alpha)
+--------------Gyration Radius------------------
+gmx gyrate -s MD.tpr -f MD_center.xtc -o gyrate1.xvg
+#Choose the group of your choice 
 xmgrace gyrate1.xvg
 
+-------------ENERGY Calculations---------------
+gmx energy -f MD.edr -o energy1.xvg
+#Choose the option of your choice
+xmgrace -nxy energy1.xvg
+
+
+jalemkul@vt.edu
