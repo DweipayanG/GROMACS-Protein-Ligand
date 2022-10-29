@@ -16,7 +16,7 @@ ONCE THE ABOVE COMMANDS ARE INTERED AND LINUX SYSTEM IS UPDATED, PROCEED TO INST
 
 ---------------GROMACS DIRTY INSTALLATION COMMAND--------------
 sudo apt install gromacs
-
+sudo apt remove gromacs
 --------------------Install Pymol------------------------
 sudo apt-get install -y pymol
 
@@ -93,7 +93,7 @@ perl sort_mol2_bonds.pl LIG.mol2 LIG.mol2 script
 
 3. Go to SwissParam "http://www.swissparam.ch/" and upload the 'Lig.mol2 file'
 4. Download the .zip folder
-5. Again open the best pose ligand with the receptor .pdb file, delete ligand, Perform DockPrep of protein as save it as .pdb file as 'rec.pdb'
+5. Again open the best pose ligand with the receptor .pdb file, delete ligand, Perform DockPrep of protein as save it as .pdb file as 'REC.pdb'
 6. Make a working Folder for Gromacs, copy contents of the downloaded zip file into this folder, copy the DockPrep 'rec.pdb' in to working folder
 7. Copy all the .mdp files into this working folder
 8. Open the terminal in this working folder and proceed with Gromacs.  
@@ -101,7 +101,7 @@ perl sort_mol2_bonds.pl LIG.mol2 LIG.mol2 script
 ---------GROMACS UBUNTU TUTORIAL-----------
 source /usr/local/gromacs/bin/GMXRC	(If Gromacs is manually compiled / not for dirty install)  
 
-gmx pdb2gmx -f rec.pdb -ignh
+gmx pdb2gmx -f REC.pdb -ignh
 8 (CHARMM27)
 1 (TIP3P)
 gmx editconf -f LIG.pdb -o LIG.gro
